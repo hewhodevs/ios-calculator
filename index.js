@@ -54,7 +54,6 @@ function decimalOnClick() {
 
 function percentOnClick() {
   // need to handle the case of 8 - 6 % (which is 8-0.48 = 7.52)
-
   let percentButton = document.getElementById("percent");
   animateButton(percentButton);
   let displayValue = getDisplayValue();
@@ -70,6 +69,8 @@ function percentOnClick() {
       math.bignumber(100)
     );
   } else if (register1 !== "") {
+    // Case where we need to calculate the percentage of the existing input
+    // i.e. button combination 8 - 6 % ==> 8 - (0.06 * 8) ==> 8 - 0.48 = 7.52
     let percentage = math.divide(
       math.bignumber(displayValue),
       math.bignumber(100)
@@ -80,8 +81,6 @@ function percentOnClick() {
   let formattedResult = formatNumber(percentValue);
   setDisplay(parseFloat(formattedResult));
   previousClickedButton = percentButton;
-  console.log(`register 1: ${register1}`);
-  console.log(`register 2: ${register2}`);
 }
 
 // ------- Dark grey buttons (numbers) functions ----------
@@ -287,10 +286,18 @@ function formatNumber(str) {
     str = str.toString();
   }
   let formattedResult = parseFloat(str);
+  let positiveResult = formattedResult;
+  if (positiveResult < 0) {
+    // convert to a positive value to check magnitude in next step to determine if we need to convert to exponential
+    positiveResult = positiveResult * -1;
+  }
   // if num < 0.0000001 || num > 100000000
   // then convert to exponential to fit on display
-  if (formattedResult < 0.0000001 || formattedResult > 100000000) {
-    formattedResult = parseFloat(str).toExponential(4);
+  if (positiveResult < 0.0000001 || positiveResult > 100000000) {
+    if (formattedResult !== 0) {
+      // convert to exponential provided result is not equal to 0
+      formattedResult = parseFloat(str).toExponential(4);
+    }
   }
   // check for cases where we have trailing 0's i.e. 1.0000e+18
   // use toExponentila(0) to mimic functionality of iOS calulator results display i.e. 1e+18
