@@ -15,7 +15,6 @@ let previousClickedButton = "";
 function acOnClick() {
   let acButton = document.getElementById("ac");
   animateButton(acButton);
-  // TODO: need to implement different operations for AC "all clear" and C "clear" here.
   setDisplay("0");
   showAllClear();
   register1 = "";
@@ -23,7 +22,6 @@ function acOnClick() {
   operation = "";
   notAwaitingInput(operationButton);
   previousClickedButton = acButton;
-  logging();
 }
 
 function plusMinusOnClick() {
@@ -38,12 +36,11 @@ function plusMinusOnClick() {
     }
   }
   previousClickedButton = plusMinusButton;
-  logging();
 }
 
 function decimalOnClick() {
-  // handle button animation
   let decimalButton = document.getElementById("decimal");
+  // handle button animation
   animateButton(decimalButton);
 
   let displayText = getDisplaytext();
@@ -53,7 +50,6 @@ function decimalOnClick() {
     showClear();
   }
   previousClickedButton = decimalButton;
-  logging();
 }
 
 function percentOnClick() {
@@ -95,7 +91,6 @@ function numberOnClick(numberButton) {
     setDisplay((displayText += number));
   }
   previousClickedButton = numberButton;
-  logging();
 }
 
 // ------- Orange button (operations) functions ----------
@@ -158,7 +153,6 @@ function operationClicked(clickedOperation, clickedButton) {
     showAwaitingInput(clickedButton);
   }
   previousClickedButton = clickedButton;
-  logging();
 }
 
 function equalsOnClick() {
@@ -232,7 +226,6 @@ function equalsOnClick() {
     }
   }
   previousClickedButton = equalsButton;
-  logging();
 }
 
 // ------- HELPER FUNCTIONS ----------
@@ -274,19 +267,33 @@ function formatNumber(str) {
     str = str.toString();
   }
   let formattedResult = parseFloat(str);
-  console.log(`Initial formattedResult: ${formattedResult}`);
-  if (str.length > 9) {
+  // if num < 0.0000001 || num > 100000000
+  // then convert to exponential to fit on display
+  if (formattedResult < 0.0000001 || formattedResult > 100000000) {
     formattedResult = parseFloat(str).toExponential(4);
   }
-  console.log(`substring = ${formattedResult.toString().substring(1, 7)}`);
   // check for cases where we have trailing 0's i.e. 1.0000e+18
   // use toExponentila(0) to mimic functionality of iOS calulator results display i.e. 1e+18
   if (formattedResult.toString().substring(1, 7) === ".0000e") {
     formattedResult = parseFloat(str).toExponential(0);
   }
-  console.log(`Final formattedResult: ${formattedResult}`);
-  console.log(`type of Final formattedResult: ${typeof formattedResult}`);
   // use replace to remove + for positive exponentials to mimic display of iOS calc for positice exponentials
+  let resultString = formattedResult.toString().replace("+", "");
+
+  // handle decimal results formatting, and decimal place location
+  // i.e. test case Pi (22/7 = 3.14285714)
+  // and test case 9999 / 22 = 454.5
+  // and test case 78524 / 64 = 1226.9375
+  if (resultString.length > 9) {
+    // get index of decimal point
+    let decimalCharIndex = resultString.indexOf(".");
+    // get substring up to decimal point
+    let integralString = resultString.substring(0, decimalCharIndex);
+    // count substring for placeholder size
+    let integralLength = integralString.length;
+    // x in toFixed(x) = 9 - substring.length; (as can only display at most 9 characters on the calc display)
+    formattedResult = formattedResult.toFixed(9 - integralLength);
+  }
   return formattedResult.toString().replace("+", "");
 }
 
@@ -312,7 +319,7 @@ function showAllClear() {
 }
 
 function animateButton(myElement) {
-  // restarts the animation when fast clicks occur in quick succession
+  // restarts the button fade animation when fast clicks occur in quick succession
   // read about animation restarts at https://css-tricks.com/restart-css-animation/
   var newButton = myElement.cloneNode(true);
   myElement.parentNode.replaceChild(newButton, myElement);
@@ -323,13 +330,4 @@ function animateButton(myElement) {
     newButton.classList.remove("animating");
     newButton.removeEventListener("animationend", listener);
   });
-}
-
-function logging() {
-  console.log(`
-  register1: ${register1}\n
-  register2: ${register2}\n
-  operation: ${operation}\n
-  awaitingInput: ${awaitingInput}\n
-  `);
 }
