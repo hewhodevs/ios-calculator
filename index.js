@@ -53,17 +53,35 @@ function decimalOnClick() {
 }
 
 function percentOnClick() {
+  // need to handle the case of 8 - 6 % (which is 8-0.48 = 7.52)
+
   let percentButton = document.getElementById("percent");
   animateButton(percentButton);
   let displayValue = getDisplayValue();
-  let percentValue = math.divide(
-    math.bignumber(displayValue),
-    math.bignumber(100)
-  );
+  let percentValue;
+  // dont convert already displayed "Error" results to a percentage
+  if (getDisplaytext() === "Error") {
+    return;
+  }
+  // case when % button is clicked immeadiately after inputting a number
+  if (register1 === "" && register2 === "") {
+    percentValue = math.divide(
+      math.bignumber(displayValue),
+      math.bignumber(100)
+    );
+  } else if (register1 !== "") {
+    let percentage = math.divide(
+      math.bignumber(displayValue),
+      math.bignumber(100)
+    );
+    percentValue = math.multiply(percentage, register1);
+  }
   percentValue = math.format(percentValue);
   let formattedResult = formatNumber(percentValue);
   setDisplay(parseFloat(formattedResult));
   previousClickedButton = percentButton;
+  console.log(`register 1: ${register1}`);
+  console.log(`register 2: ${register2}`);
 }
 
 // ------- Dark grey buttons (numbers) functions ----------
@@ -153,6 +171,8 @@ function operationClicked(clickedOperation, clickedButton) {
     showAwaitingInput(clickedButton);
   }
   previousClickedButton = clickedButton;
+  console.log(`register 1: ${register1}`);
+  console.log(`register 2: ${register2}`);
 }
 
 function equalsOnClick() {
